@@ -1,0 +1,508 @@
+----------------------------------------------------------------------------------------------------------
+       log:  C:\Projects\FFL\DM1\DM_gender_T4.log
+  log type:  text
+ opened on:  28 Apr 2010, 09:56:37
+
+. ** data is from O'Neill and O'Neill (2005), NBER WP no. 11240 with ind3 added by caseid ;
+. ** See that paper for details about data;
+. use nlsy00_ind.dta, clear;
+
+. drop if ind3<=0 | ind3>=990;
+(89 observations deleted)
+
+. *** generate dummies for industrial sectors;
+. gen primary=0;
+
+. replace primary=1 if indd1==1 | indd2==1 | indd7==1 ;
+(724 real changes made)
+
+. gen manuf=0 ;
+
+. replace manuf=1 if indd3==1 | indd4==1;
+(947 real changes made)
+
+. gen eduheal=0;
+
+. replace eduheal=1 if indd11==1 | indd13==1;
+(1295 real changes made)
+
+. gen othind=0;
+
+. replace othind=1 if indd5==1 | indd6==1 | indd8==1 | indd9==1 | indd10==1 | indd12==1;
+(2343 real changes made)
+
+.   gen ind5sum=primary+manuf+eduheal+othind;
+
+. tab ind5sum;
+
+    ind5sum |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |      5,309      100.00      100.00
+------------+-----------------------------------
+      Total |      5,309      100.00
+
+. drop if ind5sum==0;
+(0 observations deleted)
+
+. *******;
+. sort female;
+
+. replace afqtp89=afqtp89/10.0;
+afqtp89 was byte now float
+(5309 real changes made)
+
+. *check summary statistics ;
+. sort female;
+
+. by female: sum lropc00 black age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10 sch10_12 diploma_hs ged_hs smcol bachelor_col master_col doctor_col afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  primary manuf  eduheal othind  ;
+
+-------------------------------------------------------------------------------------------------------
+-> female = 0
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+     lropc00 |      2655    2.762557    .5478666   1.321756   4.789074
+       black |      2655    .2847458    .4513783          0          1
+       age00 |      2655    38.38041    2.233014         35         43
+         msa |      2655     .639548     .480222          0          1
+    ctrlcity |      2655    .2937853    .4555806          0          1
+-------------+--------------------------------------------------------
+north_cent~l |      2655    .2421846    .4284861          0          1
+     south00 |      2655    .3988701    .4897582          0          1
+        west |      2655    .1981168    .3986557          0          1
+    hispanic |      2655     .193597    .3951911          0          1
+       black |      2655    .2847458    .4513783          0          1
+-------------+--------------------------------------------------------
+      sch_10 |      2655    .0527307    .2235374          0          1
+    sch10_12 |      2655    .1239171    .3295491          0          1
+  diploma_hs |      2655    .3258004    .4687614          0          1
+      ged_hs |      2655    .0557439    .2294697          0          1
+       smcol |      2655    .2312618    .4217188          0          1
+-------------+--------------------------------------------------------
+bachelor_col |      2655    .1551789    .3621434          0          1
+  master_col |      2655    .0414313     .199323          0          1
+  doctor_col |      2655    .0150659    .1218381          0          1
+     afqtp89 |      2655    4.230998    3.014303         .1        9.9
+     famrspb |      2655    .1291902    .3354735          0          1
+-------------+--------------------------------------------------------
+    wkswk_18 |      2655    17.15973    4.091827   .8269231   25.61539
+ yrsmil78_00 |      2655    .5782776    2.139105          0   20.07692
+   pcntpt_22 |      2655    .0494499     .085542          0   .9885297
+     primary |      2655     .186064    .3892316          0          1
+       manuf |      2655    .2369115    .4252676          0          1
+-------------+--------------------------------------------------------
+     eduheal |      2655    .1299435    .3363046          0          1
+      othind |      2655     .447081    .4972854          0          1
+
+-------------------------------------------------------------------------------------------------------
+-> female = 1
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+     lropc00 |      2654    2.529257    .5157366    1.26976   4.762174
+       black |      2654    .3183873    .4659385          0          1
+       age00 |      2654    38.62547    2.234105         35         43
+         msa |      2654    .6352675    .4814458          0          1
+    ctrlcity |      2654     .302939    .4596156          0          1
+-------------+--------------------------------------------------------
+north_cent~l |      2654    .2377543    .4257881          0          1
+     south00 |      2654    .4238885    .4942662          0          1
+        west |      2654    .1861341    .3892882          0          1
+    hispanic |      2654     .182743    .3865285          0          1
+       black |      2654    .3183873    .4659385          0          1
+-------------+--------------------------------------------------------
+      sch_10 |      2654    .0316503    .1751004          0          1
+    sch10_12 |      2654    .1043708    .3057985          0          1
+  diploma_hs |      2654    .2980407    .4574837          0          1
+      ged_hs |      2654    .0452148     .207814          0          1
+       smcol |      2654    .3070836    .4613713          0          1
+-------------+--------------------------------------------------------
+bachelor_col |      2654    .1529766    .3600328          0          1
+  master_col |      2654    .0542577    .2265682          0          1
+  doctor_col |      2654    .0067822    .0820899          0          1
+     afqtp89 |      2654    3.970799    2.708512         .1        9.9
+     famrspb |      2654    .5474755    .4978348          0          1
+-------------+--------------------------------------------------------
+    wkswk_18 |      2654    15.55929    4.912546   .1346154         26
+ yrsmil78_00 |      2654     .060011    .5922189          0         13
+   pcntpt_22 |      2654    .1348241    .1666924          0   .9774951
+     primary |      2654    .0866616    .2813916          0          1
+       manuf |      2654    .1198191    .3248111          0          1
+-------------+--------------------------------------------------------
+     eduheal |      2654    .3579503    .4794877          0          1
+      othind |      2654     .435569    .4959247          0          1
+
+
+. *******;
+. *compute the raw wage differentials at quantiles 10, 50, and 90;
+. sort female;
+
+. sum lropc00 if female==1, detail;
+
+                           lropc00
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     1.568616        1.26976
+ 5%     1.769855       1.283708
+10%     1.909543       1.345472       Obs                2654
+25%     2.143589       1.345472       Sum of Wgt.        2654
+
+50%     2.484907                      Mean           2.529257
+                        Largest       Std. Dev.      .5157366
+75%     2.869035       4.517759
+90%     3.208826       4.630448       Variance       .2659842
+95%     3.426215       4.707185       Skewness       .4959721
+99%     3.921577       4.762174       Kurtosis       3.263442
+
+. gen f90=r(p90);
+
+. gen f50=r(p50);
+
+. gen f10=r(p10);
+
+. sum lropc00 if female==0, detail;
+
+                           lropc00
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     1.658228       1.321756
+ 5%     1.925707       1.345472
+10%     2.079442       1.353255       Obs                2655
+25%     2.374906       1.425515       Sum of Wgt.        2655
+
+50%     2.734368                      Mean           2.762557
+                        Largest       Std. Dev.      .5478666
+75%     3.094219       4.671239
+90%     3.467297       4.728096       Variance       .3001578
+95%      3.73767       4.755915       Skewness       .3849607
+99%     4.196299       4.789074       Kurtosis       3.169885
+
+. gen m90=r(p90);
+
+. gen m50=r(p50);
+
+. gen m10=r(p10);
+
+. gen dif90=m90-f90;
+
+. gen dif50=m50-f50;
+
+. gen dif10=m10-f10;
+
+. di "  m-f q10 =" dif10 "  m-f q50 =" dif50 "  m-f q90 ="  dif90;
+  m-f q10 =.16989899  m-f q50 =.24946094  m-f q90 =.25847149
+
+. **perform the RIF decomposition
+> *** graph the densities to check bandwidth ;
+. kdensity lropc00 if female==0, gen(evalm1 densm1) width(0.10) nograph ;
+
+. kdensity lropc00 if female==1, gen(evalf1 densf1) width(0.10) nograph ;
+
+. set scheme s1color;
+
+. label var evalf "Log(wage)";
+
+. label var evalm "Log(wage)";
+
+. graph twoway  (connected densf1 evalf1, msymbol(i) lpattern(dash) clwidth(medium) lc(red) )  /*
+>    */   (connected densm1  evalm1, msymbol(i) lpattern(longdash) clwidth(medium) lc(blue) )  /*
+>    */   , ytitle("Density")ylabel(0.0 0.2 0.4 0.6 0.8 1.0) /*
+>    */   xlabel(1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5)  /* 
+>    */   legend(pos(7) col(2) lab(1 "Women")  lab(2 "Men")    /*
+>    */   region(lstyle(none)) symxsize(8) keygap(1) textwidth(34) ) /*
+>    */   saving(nlsy00_dens,replace);
+(file nlsy00_dens.gph saved)
+
+. * compute RIF for the 10th, 50th and 90th quantiles for men and women ;
+. forvalues qt = 10(40)90 {       ;
+  2.    gen rif_`qt'=.;
+  3. };
+(5309 missing values generated)
+(5309 missing values generated)
+(5309 missing values generated)
+
+. pctile eval1=lropc00 if female==1 , nq(100) ;
+
+. kdensity lropc00 if female==1, at(eval1) gen(evalf densf) width(0.10) nograph ;
+
+. forvalues qt = 10(40)90 {       ;
+  2.  local qc = `qt'/100.0;
+  3.  replace rif_`qt'=evalf[`qt']+`qc'/densf[`qt'] if lropc00>=evalf[`qt'] & female==1;
+  4.  replace rif_`qt'=evalf[`qt']-(1-`qc')/densf[`qt'] if lropc00<evalf[`qt']& female==1;
+  5. };
+(2394 real changes made)
+(260 real changes made)
+(1344 real changes made)
+(1310 real changes made)
+(266 real changes made)
+(2388 real changes made)
+
+. pctile eval2=lropc00 if female==0, nq(100) ;
+
+. kdensity lropc00 if female==0, at(eval2) gen(evalm densm) width(0.10) nograph ;
+
+. forvalues qt = 10(40)90 {       ;
+  2.  local qc = `qt'/100.0;
+  3.  replace rif_`qt'=evalm[`qt']+`qc'/densm[`qt'] if lropc00>=evalm[`qt'] & female==0;
+  4.  replace rif_`qt'=evalm[`qt']-(1-`qc')/densm[`qt'] if lropc00<evalm[`qt']& female==0;
+  5. };
+(2404 real changes made)
+(251 real changes made)
+(1329 real changes made)
+(1326 real changes made)
+(267 real changes made)
+(2388 real changes made)
+
+. sort female;
+
+. by female: sum rif_10 rif_50 rif_90;
+
+-------------------------------------------------------------------------------------------------------
+-> female = 0
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+      rif_10 |      2655    2.093752    .7667749  -.2788042   2.341469
+      rif_50 |      2655    2.735166    .7070507    2.02745   3.441286
+      rif_90 |      2655    3.469263    1.046546   3.119386   6.598497
+
+-------------------------------------------------------------------------------------------------------
+-> female = 1
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+      rif_10 |      2654     1.91378    .6192812   .0349764   2.117828
+      rif_50 |      2654     2.49415    .7216319   1.763352   3.206462
+      rif_90 |      2654    3.209564    .9811693   2.882159   6.148827
+
+
+. ** perform oaxaca decomposition;
+. ** to get correct standard errors use DM_gender_T4boot.do ;
+. oaxaca rif_10 age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col  afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  manuf  eduheal othind,
+>         by(female) weight(1) 
+>         detail(groupdem:age00 msa ctrlcity north_central south00 west hispanic black,
+>         groupaf:afqtp89, 
+>         grouped:sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col ,
+>         groupfam:famrspb, 
+>         groupex:wkswk_18 yrsmil78_00 pcntpt_22 ,
+>         groupind:manuf  eduheal othind) ;
+
+Blinder-Oaxaca decomposition                      Number of obs   =       5309
+
+           1: female = 0
+           2: female = 1
+
+------------------------------------------------------------------------------
+      rif_10 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Differential |
+Prediction_1 |   2.093752   .0149361   140.18   0.000     2.064478    2.123026
+Prediction_2 |    1.91378   .0120649   158.62   0.000     1.890134    1.937427
+  Difference |   .1799714   .0192002     9.37   0.000     .1423396    .2176032
+-------------+----------------------------------------------------------------
+Explained    |
+    groupdem |   .0154471   .0043495     3.55   0.000     .0069223     .023972
+     grouped |  -.0108006   .0043956    -2.46   0.014    -.0194158   -.0021854
+     groupaf |   .0050171   .0023748     2.11   0.035     .0003625    .0096716
+    groupfam |   .0219695   .0178573     1.23   0.219    -.0130302    .0569692
+     groupex |    .233946   .0188508    12.41   0.000     .1969991     .270893
+    groupind |   .0080265   .0103607     0.77   0.439    -.0122802    .0283331
+       Total |   .2736056   .0266413    10.27   0.000     .2213896    .3258217
+-------------+----------------------------------------------------------------
+Unexplained  |
+    groupdem |  -.3421364   .3705234    -0.92   0.356    -1.068349    .3840761
+     grouped |   .0230501   .0289193     0.80   0.425    -.0336308    .0797309
+     groupaf |   -.006889   .0367038    -0.19   0.851    -.0788272    .0650492
+    groupfam |  -.0750672   .0279004    -2.69   0.007     -.129751   -.0203834
+     groupex |   .0840596   .0993556     0.85   0.398    -.1106739     .278793
+    groupind |   .0154932   .0507207     0.31   0.760    -.0839175    .1149039
+       _cons |   .2078557    .332039     0.63   0.531    -.4429287    .8586401
+       Total |  -.0936342   .0306902    -3.05   0.002    -.1537858   -.0334826
+------------------------------------------------------------------------------
+groupdem: age00 msa ctrlcity north_central south00 west hispanic black
+grouped: sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col
+  doctor_col
+groupaf: afqtp89
+groupfam: famrspb
+groupex: wkswk_18 yrsmil78_00 pcntpt_22
+groupind: manuf eduheal othind
+
+. oaxaca rif_50 age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col  afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  manuf  eduheal othind,
+>         by(female) weight(1) 
+>         detail(groupdem:age00 msa ctrlcity north_central south00 west hispanic black,
+>         groupaf:afqtp89, 
+>         grouped:sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col ,
+>         groupfam:famrspb, 
+>         groupex:wkswk_18 yrsmil78_00 pcntpt_22 ,
+>         groupind:manuf  eduheal othind) ;
+
+Blinder-Oaxaca decomposition                      Number of obs   =       5309
+
+           1: female = 0
+           2: female = 1
+
+------------------------------------------------------------------------------
+      rif_50 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Differential |
+Prediction_1 |   2.735166   .0137642   198.72   0.000     2.708189    2.762144
+Prediction_2 |    2.49415   .0140495   177.53   0.000     2.466614    2.521687
+  Difference |   .2410159   .0196683    12.25   0.000     .2024668     .279565
+-------------+----------------------------------------------------------------
+Explained    |
+    groupdem |   .0133854   .0039353     3.40   0.001     .0056723    .0210985
+     grouped |  -.0173338   .0055422    -3.13   0.002    -.0281962   -.0064714
+     groupaf |   .0133359   .0043142     3.09   0.002     .0048802    .0217915
+    groupfam |   .0424518   .0150548     2.82   0.005     .0129449    .0719588
+     groupex |   .1361451   .0150355     9.05   0.000      .106676    .1656142
+    groupind |   .0201052   .0087372     2.30   0.021     .0029806    .0372297
+       Total |   .2080896   .0236163     8.81   0.000     .1618025    .2543767
+-------------+----------------------------------------------------------------
+Unexplained  |
+    groupdem |   .1678518   .3404833     0.49   0.622    -.4994832    .8351868
+     grouped |  -.0304649   .0266167    -1.14   0.252    -.0826327     .021703
+     groupaf |   .0030211   .0343557     0.09   0.930    -.0643148    .0703569
+    groupfam |  -.0049326   .0253303    -0.19   0.846    -.0545791     .044714
+     groupex |  -.0851634   .0890993    -0.96   0.339    -.2597948    .0894681
+    groupind |  -.1717867   .0485076    -3.54   0.000    -.2668598   -.0767135
+       _cons |    .154401   .3078738     0.50   0.616    -.4490206    .7578225
+       Total |   .0329264   .0265135     1.24   0.214    -.0190392    .0848919
+------------------------------------------------------------------------------
+groupdem: age00 msa ctrlcity north_central south00 west hispanic black
+grouped: sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col
+  doctor_col
+groupaf: afqtp89
+groupfam: famrspb
+groupex: wkswk_18 yrsmil78_00 pcntpt_22
+groupind: manuf eduheal othind
+
+. oaxaca rif_90 age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col  afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  manuf  eduheal othind,
+>         by(female) weight(1) 
+>         detail(groupdem:age00 msa ctrlcity north_central south00 west hispanic black,
+>         groupaf:afqtp89, 
+>         grouped:sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col ,
+>         groupfam:famrspb, 
+>         groupex:wkswk_18 yrsmil78_00 pcntpt_22 ,
+>         groupind:manuf  eduheal othind) ;
+
+Blinder-Oaxaca decomposition                      Number of obs   =       5309
+
+           1: female = 0
+           2: female = 1
+
+------------------------------------------------------------------------------
+      rif_90 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+Differential |
+Prediction_1 |   3.469263   .0203807   170.22   0.000     3.429317    3.509208
+Prediction_2 |   3.209564   .0191151   167.91   0.000     3.172099    3.247029
+  Difference |   .2596986   .0279421     9.29   0.000     .2049331     .314464
+-------------+----------------------------------------------------------------
+Explained    |
+    groupdem |   .0021949   .0036665     0.60   0.549    -.0049913    .0093812
+     grouped |  -.0046265   .0107516    -0.43   0.667    -.0256992    .0164463
+     groupaf |   .0128913   .0045809     2.81   0.005      .003913    .0218696
+    groupfam |     .03864   .0235419     1.64   0.101    -.0075013    .0847813
+     groupex |   .0394521   .0220611     1.79   0.074    -.0037868     .082691
+    groupind |   .0474003   .0138381     3.43   0.001     .0202782    .0745224
+       Total |   .1359522   .0350045     3.88   0.000     .0673446    .2045598
+-------------+----------------------------------------------------------------
+Unexplained  |
+    groupdem |   .8603634   .5239273     1.64   0.101    -.1665152    1.887242
+     grouped |   .0232644   .0409847     0.57   0.570    -.0570642     .103593
+     groupaf |   .0077015   .0526832     0.15   0.884    -.0955558    .1109587
+    groupfam |   .0176398    .039061     0.45   0.652    -.0589183    .0941979
+     groupex |  -.0779648   .1377212    -0.57   0.571    -.3478934    .1919638
+    groupind |  -.0539713   .0740818    -0.73   0.466     -.199169    .0912264
+       _cons |  -.6532866   .4729453    -1.38   0.167    -1.580242    .2736692
+       Total |   .1237464   .0411677     3.01   0.003     .0430592    .2044335
+------------------------------------------------------------------------------
+groupdem: age00 msa ctrlcity north_central south00 west hispanic black
+grouped: sch_10 sch10_12 diploma_hs ged_hs bachelor_col master_col doctor_col
+  doctor_col
+groupaf: afqtp89
+groupfam: famrspb
+groupex: wkswk_18 yrsmil78_00 pcntpt_22
+groupind: manuf eduheal othind
+
+. * perform the MM procedure for these quantiles using Melly's rqdeco ;
+. rqdeco lropc00  age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10   diploma_hs ged_hs smcol bachelor_col master_col doctor_col afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  manuf  eduheal othind  
+>         , by(female)  quantiles(0.1 0.5 0.9) vce(none);
+
+Decomposition of differences in distribution using quantile regression
+         Total number of observations                    5309
+           Number of observations in group 0             2655
+           Number of observations in group 1             2654
+
+         Number of quantile regressions estimated         100
+
+The variance has not been computed.
+Use the option vce if you want to compute it.
+
+-----------------------------------------------------------------------------
+        Component|   Effects  Std. Err.     t     P>|t|  [95% Conf. Interval] 
+-----------------+-----------------------------------------------------------
+Quantile .1      |
+   Raw difference|  -.192128         .     .         .           .          .
+  Characteristics|  -.256768         .     .         .           .          .
+     Coefficients|    .06464         .     .         .           .          .
+-----------------+-----------------------------------------------------------
+Quantile .5      |
+   Raw difference|  -.238791         .     .         .           .          .
+  Characteristics|  -.197441         .     .         .           .          .
+     Coefficients|  -.041351         .     .         .           .          .
+-----------------+-----------------------------------------------------------
+Quantile .9      |
+   Raw difference|  -.275643         .     .         .           .          .
+  Characteristics|    -.1431         .     .         .           .          .
+     Coefficients|  -.132543         .     .         .           .          .
+-----------------------------------------------------------------------------
+
+. *use bootstrap option to get the se;
+. rqdeco lropc00  age00 msa ctrlcity north_central south00 west hispanic black 
+>          sch_10   diploma_hs ged_hs smcol bachelor_col master_col doctor_col afqtp89 
+>         famrspb wkswk_18 yrsmil78_00 pcntpt_22  manuf  eduheal othind  
+>         , by(female)  quantiles(0.1 0.5 0.9)
+>     vce(boot) reps(100) noprint;
+Fitting base model
+(bootstrapping ........................................................................................
+> ............)
+
+
+Decomposition of differences in distribution using quantile regression
+         Total number of observations                    5309
+           Number of observations in group 0             2655
+           Number of observations in group 1             2654
+
+         Number of quantile regressions estimated         100
+
+The variance has been estimated by bootstraping the results 100 times
+
+
+. matrix list r(se);
+
+r(se)[3,3]
+    total_differential     characteristics        coefficients
+r1           .01773241           .02373445           .02615255
+r2           .01802221           .01898263           .01882989
+r3           .02663733           .01992156           .02725536
+
+. 
+end of do-file
+
+
+. log close
+       log:  C:\Projects\FFL\DM1\DM_gender_T4.log
+  log type:  text
+ closed on:  28 Apr 2010, 14:52:19
+-------------------------------------------------------------------------------------------------------

@@ -1,0 +1,1056 @@
+-------------------------------------------------------------------------------------------------------
+       log:  C:\Projects\FFL\DM1\DM_mineq_T5b.log
+  log type:  text
+ opened on:  30 Apr 2010, 11:33:12
+
+. use usmen0305_occ;
+
+. gen time=1;
+
+.  append using usmen8385_occ;
+
+. drop marr nonwhite uhrswk class alloc pub occ* ind*;
+
+. replace time=0 if time~=1;
+(232784 real changes made)
+
+. ***first get raw wage differentials, variance and gini;
+. sum lwage [weight=eweight] if time==1, detail;
+(analytic weights assumed)
+
+                           lwage1
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .6579609       .0021976
+ 5%      .914354        .003168
+10%     1.053047       .0050538       Obs              170693
+25%     1.351108       .0077748       Sum of Wgt.  1.4213e+09
+
+50%       1.7774                      Mean           1.807699
+                        Largest       Std. Dev.      .5948336
+75%     2.218114       4.394967
+90%     2.619378       4.452199       Variance        .353827
+95%     2.857367       4.518595       Skewness       .2221369
+99%     3.183481       4.579553       Kurtosis       2.633646
+
+. gen d9010_1=r(p90)-r(p10);
+
+. gen d9050_1=r(p90)-r(p50);
+
+. gen d5010_1=r(p50)-r(p10);
+
+. gen var_1=r(sd)^2;
+
+. fastgini lwage [w=eweight] if time==1;
+(sampling weights assumed)
+
+Gini coefficient = 0.1871027
+
+.  gen gini_1=r(gini);
+
+.  sum lwage [weight=eweight] if time==0, detail;
+(analytic weights assumed)
+
+                           lwage1
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .6166071       .0001378
+ 5%     .8705223       .0001378
+10%     .9909816       .0006496       Obs              232784
+25%     1.340526        .001123       Sum of Wgt.  1.4672e+09
+
+50%     1.788959                      Mean           1.754542
+                        Largest       Std. Dev.      .5405164
+75%      2.15388       4.271949
+90%     2.448188       4.305188       Variance        .292158
+95%     2.617515       4.392179       Skewness      -.0969389
+99%     2.853653       4.440384       Kurtosis       2.470979
+
+. gen d9010_0=r(p90)-r(p10);
+
+. gen d9050_0=r(p90)-r(p50);
+
+. gen d5010_0=r(p50)-r(p10);
+
+. gen var_0=r(sd)^2;
+
+. fastgini lwage [w=eweight] if time==0;
+(sampling weights assumed)
+
+Gini coefficient = 0.1758791
+
+.  gen gini_0=r(gini);
+
+.  gen cd9010=d9010_1-d9010_0;
+
+. gen cd9050=d9050_1-d9050_0;
+
+. gen cd5010=d5010_1-d5010_0;
+
+. gen cvar=var_1-var_0;
+
+. gen chgini=gini_1-gini_0;
+
+. di " c9010=" cd9010 " c9050=" cd9050 " c5010=" cd5010 "
+>   cvar=" cvar " chgini=" chgini;
+ c9010=.10912478 c9050=.18274856 c5010=-.07362372   cvar=.06166905 chgini=.01122354
+
+. gen timeinv=1-time;
+
+. *do both with lpm and lpm as link;
+. *get fitted time0 and counterfactual distribution;
+. counterfactual lwage covered ed0 ed1 ed3 ed4 ed5 ex1 ex2 ex3 ex4 ex6 ex7 ex8 ex9 
+>    [weight=eweight], group(time) method(lpm) quantiles(0.1 0.5 0.9) noboot;
+(analytic weights assumed)
+
+Conditional model                         linear probability model
+Number of regressions estimated           100     
+
+The variance has not been computed.
+Do not turn the option boot off if you want to compute it.
+
+No. of obs. in the reference group        232784  
+No. of obs. in the counterfactual group   170693  
+
+
+Quantile Treatment Effects
+------------------------------------------------------------------------------
+            |            Pointwise     Pointwise              Functional      
+Quantile    |     QTE    Std. Err. [95% Conf. Interval]  [95% Conf. Interval] 
+------------+-----------------------------------------------------------------
+.1          |    .07287         .          .         .            .         .
+.5          |   .098997         .          .         .            .         .
+.9          |   .101735         .          .         .            .         .
+------------------------------------------------------------------------------
+
+. matrix Rt=e(distributions);
+
+. matrix list Rt;
+
+Rt[3,12]
+          observed        point_se      uniform_lb      uniform_ub          fitted        point_se
+q1       .99098164               .               .               .       1.0022001               .
+q2       1.7889585               .               .               .       1.7972052               .
+q3       2.4481881               .               .               .       2.4621999               .
+
+        uniform_lb      uniform_ub  counterfactual         poit_se      uniform_lb      uniform_ub
+q1               .               .       1.0750705               .               .               .
+q2               .               .       1.8962021               .               .               .
+q3               .               .       2.5639346               .               .               .
+
+. * fitted time0 in column 5;
+. matrix Rf10=Rt[1,5];
+
+.  matrix Rf50=Rt[2,5];
+
+.  matrix Rf90=Rt[3,5];
+
+. svmat Rf10;
+
+.  svmat Rf50;
+
+.  svmat Rf90;
+
+. gen d9010_f0=Rf901-Rf101;
+(403476 missing values generated)
+
+. gen d9050_f0=Rf901-Rf501;
+(403476 missing values generated)
+
+. gen d5010_f0=Rf501-Rf101;
+(403476 missing values generated)
+
+. * counterfactual in column 9;
+. matrix Rc10=Rt[1,9];
+
+.  matrix Rc50=Rt[2,9];
+
+.  matrix Rc90=Rt[3,9];
+
+. svmat Rc10;
+
+.  svmat Rc50;
+
+.  svmat Rc90;
+
+. gen d9010_01=Rc901-Rc101;
+(403476 missing values generated)
+
+. gen d9050_01=Rc901-Rc501;
+(403476 missing values generated)
+
+. gen d5010_01=Rc501-Rc101;
+(403476 missing values generated)
+
+. * get composition effects as Fc:F01-Ff0;
+. gen cad9010c1=(d9010_01-d9010_f0);
+(403476 missing values generated)
+
+. gen cad9050c1=(d9050_01-d9050_f0);
+(403476 missing values generated)
+
+. gen cad5010c1=(d5010_01-d5010_f0);
+(403476 missing values generated)
+
+. *****;
+. *now invert time to get fitted time 1;
+. counterfactual lwage covered ed0 ed1 ed3 ed4 ed5 ex1 ex2 ex3 ex4 ex6 ex7 ex8 ex9 
+>    [weight=eweight], group(timeinv) method(lpm) quantiles(0.1 0.5 0.9)  noboot;
+(analytic weights assumed)
+
+Conditional model                         linear probability model
+Number of regressions estimated           100     
+
+The variance has not been computed.
+Do not turn the option boot off if you want to compute it.
+
+No. of obs. in the reference group        170693  
+No. of obs. in the counterfactual group   232784  
+
+
+Quantile Treatment Effects
+------------------------------------------------------------------------------
+            |            Pointwise     Pointwise              Functional      
+Quantile    |     QTE    Std. Err. [95% Conf. Interval]  [95% Conf. Interval] 
+------------+-----------------------------------------------------------------
+.1          |  -.056474         .          .         .            .         .
+.5          |  -.082267         .          .         .            .         .
+.9          |  -.141496         .          .         .            .         .
+------------------------------------------------------------------------------
+
+. matrix Rtinv=e(distributions);
+
+. matrix list Rtinv;
+
+Rtinv[3,12]
+          observed        point_se      uniform_lb      uniform_ub          fitted        point_se
+q1       1.0530471               .               .               .       1.0700971               .
+q2       1.7774003               .               .               .       1.7829827               .
+q3       2.6193783               .               .               .       2.6400924               .
+
+        uniform_lb      uniform_ub  counterfactual         poit_se      uniform_lb      uniform_ub
+q1               .               .       1.0136231               .               .               .
+q2               .               .       1.7007158               .               .               .
+q3               .               .       2.4985962               .               .               .
+
+. * fitted time1 in column 5;
+. matrix Rif10=Rtinv[1,5];
+
+.  matrix Rif50=Rtinv[2,5];
+
+.   matrix Rif90=Rtinv[3,5];
+
+. svmat Rif10;
+
+.  svmat Rif50;
+
+.  svmat Rif90;
+
+. gen d9010_f1=Rif901-Rif101;
+(403476 missing values generated)
+
+. gen d9050_f1=Rif901-Rif501;
+(403476 missing values generated)
+
+. gen d5010_f1=Rif501-Rif101;
+(403476 missing values generated)
+
+. * get total effects as F1-F0;
+. gen cad9010t=(d9010_f1-d9010_f0);
+(403476 missing values generated)
+
+. gen cad9050t=(d9050_f1-d9050_f0);
+(403476 missing values generated)
+
+. gen cad5010t=(d5010_f1-d5010_f0);
+(403476 missing values generated)
+
+. * wage structure will be total minus composition;
+.  gen cad9010s=cad9010t-cad9010c1;
+(403476 missing values generated)
+
+. gen cad9050s=cad9050t-cad9050c1;
+(403476 missing values generated)
+
+. gen cad5010s=cad5010t-cad5010c1;
+(403476 missing values generated)
+
+. di "total effect"  " c9010=" cad9010t " c9050=" cad9050t " c5010=" cad5010t  ;
+total effect c9010=.10999548 c9050=.19211495 c5010=-.08211946
+
+. di "composition" " c9010=" cad9010c1 " c9050=" cad9050c1 " c5010=" cad5010c1  ;
+composition c9010=.02886426 c9050=.00273776 c5010=.0261265
+
+. di "wage structure"    " c9010=" cad9010s " c9050=" cad9050s " c5010=" cad5010s  ;
+wage structure c9010=.08113122 c9050=.18937719 c5010=-.10824597
+
+. *now to obtain variance and gini get;
+. counterfactual lwage covered ed0 ed1 ed3 ed4 ed5 ex1 ex2 ex3 ex4 ex6 ex7 ex8 ex9 
+>    [weight=eweight], group(time) method(lpm) qlow(0.01) qhigh(0.99) qstep(0.01) noboot;
+(analytic weights assumed)
+
+Conditional model                         linear probability model
+Number of regressions estimated           100     
+
+The variance has not been computed.
+Do not turn the option boot off if you want to compute it.
+
+No. of obs. in the reference group        232784  
+No. of obs. in the counterfactual group   170693  
+
+
+Quantile Treatment Effects
+------------------------------------------------------------------------------
+            |            Pointwise     Pointwise              Functional      
+Quantile    |     QTE    Std. Err. [95% Conf. Interval]  [95% Conf. Interval] 
+------------+-----------------------------------------------------------------
+.01         |         0         .          .         .            .         .
+.02         |         0         .          .         .            .         .
+.03         |   .019935         .          .         .            .         .
+.04         |   .019773         .          .         .            .         .
+.05         |   .017114         .          .         .            .         .
+.06         |   .051223         .          .         .            .         .
+.07         |   .061782         .          .         .            .         .
+.08         |    .05419         .          .         .            .         .
+.09         |   .073261         .          .         .            .         .
+.1          |    .07287         .          .         .            .         .
+.11         |   .080969         .          .         .            .         .
+.12         |   .079056         .          .         .            .         .
+.13         |   .094464         .          .         .            .         .
+.14         |   .096169         .          .         .            .         .
+.15         |   .083753         .          .         .            .         .
+.16         |   .079516         .          .         .            .         .
+.17         |   .070104         .          .         .            .         .
+.18         |   .071336         .          .         .            .         .
+.19         |   .071802         .          .         .            .         .
+.2          |   .077818         .          .         .            .         .
+.21         |   .083603         .          .         .            .         .
+.22         |   .095347         .          .         .            .         .
+.23         |    .09342         .          .         .            .         .
+.24         |   .093042         .          .         .            .         .
+.25         |   .083255         .          .         .            .         .
+.26         |    .08989         .          .         .            .         .
+.27         |   .091865         .          .         .            .         .
+.28         |   .090467         .          .         .            .         .
+.29         |   .095843         .          .         .            .         .
+.3          |   .090961         .          .         .            .         .
+.31         |   .095143         .          .         .            .         .
+.32         |   .092745         .          .         .            .         .
+.33         |   .096505         .          .         .            .         .
+.34         |   .086478         .          .         .            .         .
+.35         |   .086991         .          .         .            .         .
+.36         |   .084742         .          .         .            .         .
+.37         |   .086435         .          .         .            .         .
+.38         |   .078245         .          .         .            .         .
+.39         |   .081377         .          .         .            .         .
+.4          |   .078629         .          .         .            .         .
+.41         |   .077948         .          .         .            .         .
+.42         |   .092568         .          .         .            .         .
+.43         |   .095332         .          .         .            .         .
+.44         |   .096238         .          .         .            .         .
+.45         |   .097666         .          .         .            .         .
+.46         |   .097841         .          .         .            .         .
+.47         |   .097471         .          .         .            .         .
+.48         |   .099577         .          .         .            .         .
+.49         |   .099589         .          .         .            .         .
+.5          |   .098997         .          .         .            .         .
+.51         |   .094387         .          .         .            .         .
+.52         |   .092115         .          .         .            .         .
+.53         |    .08525         .          .         .            .         .
+.54         |   .081945         .          .         .            .         .
+.55         |   .078614         .          .         .            .         .
+.56         |   .075451         .          .         .            .         .
+.57         |   .076128         .          .         .            .         .
+.58         |    .07618         .          .         .            .         .
+.59         |   .076495         .          .         .            .         .
+.6          |   .078147         .          .         .            .         .
+.61         |    .08216         .          .         .            .         .
+.62         |   .084558         .          .         .            .         .
+.63         |   .092291         .          .         .            .         .
+.64         |    .09171         .          .         .            .         .
+.65         |   .095434         .          .         .            .         .
+.66         |   .093641         .          .         .            .         .
+.67         |   .090443         .          .         .            .         .
+.68         |   .089669         .          .         .            .         .
+.69         |   .082034         .          .         .            .         .
+.7          |   .083854         .          .         .            .         .
+.71         |   .083974         .          .         .            .         .
+.72         |   .082937         .          .         .            .         .
+.73         |   .086902         .          .         .            .         .
+.74         |   .086795         .          .         .            .         .
+.75         |   .094229         .          .         .            .         .
+.76         |   .099575         .          .         .            .         .
+.77         |   .110655         .          .         .            .         .
+.78         |   .096522         .          .         .            .         .
+.79         |   .096218         .          .         .            .         .
+.8          |   .103167         .          .         .            .         .
+.81         |   .103277         .          .         .            .         .
+.82         |    .10747         .          .         .            .         .
+.83         |   .107942         .          .         .            .         .
+.84         |   .119175         .          .         .            .         .
+.85         |    .09772         .          .         .            .         .
+.86         |   .106967         .          .         .            .         .
+.87         |   .113608         .          .         .            .         .
+.88         |    .12233         .          .         .            .         .
+.89         |   .094005         .          .         .            .         .
+.9          |   .101735         .          .         .            .         .
+.91         |   .107679         .          .         .            .         .
+.92         |   .106778         .          .         .            .         .
+.93         |    .07041         .          .         .            .         .
+.94         |   .080801         .          .         .            .         .
+.95         |   .109839         .          .         .            .         .
+.96         |   .062964         .          .         .            .         .
+.97         |   .079477         .          .         .            .         .
+.98         |   .071285         .          .         .            .         .
+.99         |         0         .          .         .            .         .
+------------------------------------------------------------------------------
+
+. matrix D=e(distributions);
+
+. matrix list D;
+
+D[99,12]
+           observed        point_se      uniform_lb      uniform_ub          fitted        point_se
+ q1       .61660713               .               .               .       .75273925               .
+ q2       .80257738               .               .               .       .81550461               .
+ q3       .83048618               .               .               .       .83996493               .
+ q4       .85147411               .               .               .       .85990006               .
+ q5       .87052232               .               .               .       .87967336               .
+ q6       .88834423               .               .               .       .89678723               .
+ q7       .90884119               .               .               .       .91812897               .
+ q8       .93055969               .               .               .       .94800979               .
+ q9       .96259332               .               .               .       .97991139               .
+q10       .99098164               .               .               .       1.0022001               .
+q11       1.0144459               .               .               .       1.0231681               .
+q12       1.0377876               .               .               .       1.0531728               .
+q13       1.0640911               .               .               .       1.0750705               .
+q14       1.0883347               .               .               .       1.1041372               .
+q15       1.1182748               .               .               .       1.1322289               .
+q16       1.1504374               .               .               .       1.1695348               .
+q17       1.1848726               .               .               .       1.2003064               .
+q18       1.2094977               .               .               .       1.2159822               .
+q19       1.2270746               .               .               .       1.2356919               .
+q20       1.2404425               .               .               .       1.2490509               .
+q21       1.2587035               .               .               .       1.2704109               .
+q22       1.2786505               .               .               .       1.2873179               .
+q23       1.2972648               .               .               .       1.3074936               .
+q24       1.3114783               .               .               .        1.326869               .
+q25        1.340526               .               .               .       1.3540137               .
+q26       1.3705152               .               .               .       1.3826646               .
+q27       1.3922348               .               .               .       1.4009132               .
+q28       1.4102592               .               .               .        1.419911               .
+q29       1.4275373               .               .               .       1.4372687               .
+q30       1.4471666               .               .               .        1.458638               .
+q31       1.4645786               .               .               .       1.4725547               .
+q32       1.4811385               .               .               .       1.4927778               .
+q33       1.4999536               .               .               .       1.5103782               .
+q34       1.5204084               .               .               .        1.533112               .
+q35       1.5396804               .               .               .       1.5495989               .
+q36       1.5588081               .               .               .       1.5676981               .
+q37       1.5746185               .               .               .       1.5855231               .
+q38       1.5957578               .               .               .       1.6068832               .
+q39       1.6137763               .               .               .       1.6195903               .
+q40       1.6279742               .               .               .       1.6365901               .
+q41       1.6448877               .               .               .       1.6524403               .
+q42       1.6624529               .               .               .       1.6719583               .
+q43       1.6800419               .               .               .       1.6851283               .
+q44       1.6926998               .               .               .       1.7009673               .
+q45       1.7075931               .               .               .       1.7152194               .
+q46       1.7216243               .               .               .       1.7303882               .
+q47       1.7401259               .               .               .       1.7480149               .
+q48       1.7570568               .               .               .        1.764526               .
+q49       1.7733352               .               .               .       1.7804599               .
+q50       1.7889585               .               .               .       1.7972052               .
+q51       1.8039305               .               .               .       1.8128853               .
+q52       1.8221253               .               .               .       1.8282292               .
+q53       1.8370829               .               .               .       1.8454864               .
+q54        1.853861               .               .               .       1.8641031               .
+q55       1.8703885               .               .               .       1.8800489               .
+q56       1.8909048               .               .               .       1.8962021               .
+q57       1.9026449               .               .               .       1.9072723               .
+q58       1.9119214               .               .               .       1.9203445               .
+q59       1.9288391               .               .               .       1.9307365               .
+q60        1.938363               .               .               .       1.9460479               .
+q61       1.9518507               .               .               .       1.9586633               .
+q62       1.9653822               .               .               .       1.9716532               .
+q63       1.9786134               .               .               .       1.9834007               .
+q64        1.990412               .               .               .       1.9965243               .
+q65       2.0036035               .               .               .       2.0072315               .
+q66       2.0156546               .               .               .       2.0241945               .
+q67        2.031234               .               .               .       2.0408235               .
+q68       2.0485196               .               .               .       2.0562108               .
+q69       2.0667281               .               .               .       2.0756919               .
+q70        2.081341               .               .               .       2.0882342               .
+q71         2.09554               .               .               .       2.1026659               .
+q72       2.1123161               .               .               .       2.1178358               .
+q73       2.1245196               .               .               .       2.1312666               .
+q74       2.1387997               .               .               .       2.1458797               .
+q75       2.1538801               .               .               .       2.1577258               .
+q76       2.1653416               .               .               .       2.1720886               .
+q77       2.1793313               .               .               .       2.1866403               .
+q78       2.1931009               .               .               .       2.2007728               .
+q79       2.2094145               .               .               .       2.2181687               .
+q80        2.226747               .               .               .       2.2326744               .
+q81       2.2425647               .               .               .       2.2519553               .
+q82       2.2636311               .               .               .       2.2716632               .
+q83       2.2848601               .               .               .       2.2972951               .
+q84       2.3055739               .               .               .       2.3143866               .
+q85       2.3236353               .               .               .       2.3358414               .
+q86       2.3430543               .               .               .       2.3552325               .
+q87       2.3688457               .               .               .        2.379133               .
+q88       2.3928576               .               .               .       2.4052367               .
+q89       2.4167018               .               .               .       2.4335618               .
+q90       2.4481881               .               .               .       2.4621999               .
+q91       2.4777761               .               .               .       2.4927406               .
+q92       2.5087578               .               .               .       2.5275669               .
+q93       2.5446002               .               .               .       2.5639346               .
+q94       2.5866008               .               .               .       2.6004195               .
+q95       2.6175153               .               .               .       2.6343448               .
+q96       2.6567051               .               .               .       2.6812201               .
+q97       2.7071323               .               .               .       2.7441838               .
+q98       2.7938366               .               .               .       2.8236609               .
+q99       2.8536532               .               .               .       2.8949461               .
+
+         uniform_lb      uniform_ub  counterfactual         poit_se      uniform_lb      uniform_ub
+ q1               .               .       .75273925               .               .               .
+ q2               .               .       .81550461               .               .               .
+ q3               .               .       .85990006               .               .               .
+ q4               .               .       .87967336               .               .               .
+ q5               .               .       .89678723               .               .               .
+ q6               .               .       .94800979               .               .               .
+ q7               .               .       .97991139               .               .               .
+ q8               .               .       1.0022001               .               .               .
+ q9               .               .       1.0531728               .               .               .
+q10               .               .       1.0750705               .               .               .
+q11               .               .       1.1041372               .               .               .
+q12               .               .       1.1322289               .               .               .
+q13               .               .       1.1695348               .               .               .
+q14               .               .       1.2003064               .               .               .
+q15               .               .       1.2159822               .               .               .
+q16               .               .       1.2490509               .               .               .
+q17               .               .       1.2704109               .               .               .
+q18               .               .       1.2873179               .               .               .
+q19               .               .       1.3074936               .               .               .
+q20               .               .        1.326869               .               .               .
+q21               .               .       1.3540137               .               .               .
+q22               .               .       1.3826646               .               .               .
+q23               .               .       1.4009132               .               .               .
+q24               .               .        1.419911               .               .               .
+q25               .               .       1.4372687               .               .               .
+q26               .               .       1.4725547               .               .               .
+q27               .               .       1.4927778               .               .               .
+q28               .               .       1.5103782               .               .               .
+q29               .               .        1.533112               .               .               .
+q30               .               .       1.5495989               .               .               .
+q31               .               .       1.5676981               .               .               .
+q32               .               .       1.5855231               .               .               .
+q33               .               .       1.6068832               .               .               .
+q34               .               .       1.6195903               .               .               .
+q35               .               .       1.6365901               .               .               .
+q36               .               .       1.6524403               .               .               .
+q37               .               .       1.6719583               .               .               .
+q38               .               .       1.6851283               .               .               .
+q39               .               .       1.7009673               .               .               .
+q40               .               .       1.7152194               .               .               .
+q41               .               .       1.7303882               .               .               .
+q42               .               .        1.764526               .               .               .
+q43               .               .       1.7804599               .               .               .
+q44               .               .       1.7972052               .               .               .
+q45               .               .       1.8128853               .               .               .
+q46               .               .       1.8282292               .               .               .
+q47               .               .       1.8454864               .               .               .
+q48               .               .       1.8641031               .               .               .
+q49               .               .       1.8800489               .               .               .
+q50               .               .       1.8962021               .               .               .
+q51               .               .       1.9072723               .               .               .
+q52               .               .       1.9203445               .               .               .
+q53               .               .       1.9307365               .               .               .
+q54               .               .       1.9460479               .               .               .
+q55               .               .       1.9586633               .               .               .
+q56               .               .       1.9716532               .               .               .
+q57               .               .       1.9834007               .               .               .
+q58               .               .       1.9965243               .               .               .
+q59               .               .       2.0072315               .               .               .
+q60               .               .       2.0241945               .               .               .
+q61               .               .       2.0408235               .               .               .
+q62               .               .       2.0562108               .               .               .
+q63               .               .       2.0756919               .               .               .
+q64               .               .       2.0882342               .               .               .
+q65               .               .       2.1026659               .               .               .
+q66               .               .       2.1178358               .               .               .
+q67               .               .       2.1312666               .               .               .
+q68               .               .       2.1458797               .               .               .
+q69               .               .       2.1577258               .               .               .
+q70               .               .       2.1720886               .               .               .
+q71               .               .       2.1866403               .               .               .
+q72               .               .       2.2007728               .               .               .
+q73               .               .       2.2181687               .               .               .
+q74               .               .       2.2326744               .               .               .
+q75               .               .       2.2519553               .               .               .
+q76               .               .       2.2716632               .               .               .
+q77               .               .       2.2972951               .               .               .
+q78               .               .       2.2972951               .               .               .
+q79               .               .       2.3143866               .               .               .
+q80               .               .       2.3358414               .               .               .
+q81               .               .       2.3552325               .               .               .
+q82               .               .        2.379133               .               .               .
+q83               .               .       2.4052367               .               .               .
+q84               .               .       2.4335618               .               .               .
+q85               .               .       2.4335618               .               .               .
+q86               .               .       2.4621999               .               .               .
+q87               .               .       2.4927406               .               .               .
+q88               .               .       2.5275669               .               .               .
+q89               .               .       2.5275669               .               .               .
+q90               .               .       2.5639346               .               .               .
+q91               .               .       2.6004195               .               .               .
+q92               .               .       2.6343448               .               .               .
+q93               .               .       2.6343448               .               .               .
+q94               .               .       2.6812201               .               .               .
+q95               .               .       2.7441838               .               .               .
+q96               .               .       2.7441838               .               .               .
+q97               .               .       2.8236609               .               .               .
+q98               .               .       2.8949461               .               .               .
+q99               .               .       2.8949461               .               .               .
+
+. svmat D;
+
+. counterfactual lwage covered ed0 ed1 ed3 ed4 ed5 ex1 ex2 ex3 ex4 ex6 ex7 ex8 ex9 
+>    [weight=eweight], group(timeinv) method(lpm) qlow(0.01) qhigh(0.99) qstep(0.01) noboot;
+(analytic weights assumed)
+
+Conditional model                         linear probability model
+Number of regressions estimated           100     
+
+The variance has not been computed.
+Do not turn the option boot off if you want to compute it.
+
+No. of obs. in the reference group        170693  
+No. of obs. in the counterfactual group   232784  
+
+
+Quantile Treatment Effects
+------------------------------------------------------------------------------
+            |            Pointwise     Pointwise              Functional      
+Quantile    |     QTE    Std. Err. [95% Conf. Interval]  [95% Conf. Interval] 
+------------+-----------------------------------------------------------------
+.01         |         0         .          .         .            .         .
+.02         |         0         .          .         .            .         .
+.03         |  -.053092         .          .         .            .         .
+.04         |  -.041495         .          .         .            .         .
+.05         |  -.049452         .          .         .            .         .
+.06         |  -.026777         .          .         .            .         .
+.07         |  -.048438         .          .         .            .         .
+.08         |  -.048271         .          .         .            .         .
+.09         |  -.048042         .          .         .            .         .
+.1          |  -.056474         .          .         .            .         .
+.11         |  -.073716         .          .         .            .         .
+.12         |  -.077077         .          .         .            .         .
+.13         |  -.057867         .          .         .            .         .
+.14         |  -.061045         .          .         .            .         .
+.15         |  -.055641         .          .         .            .         .
+.16         |  -.069601         .          .         .            .         .
+.17         |  -.084852         .          .         .            .         .
+.18         |  -.088361         .          .         .            .         .
+.19         |  -.092979         .          .         .            .         .
+.2          |  -.082238         .          .         .            .         .
+.21         |  -.088489         .          .         .            .         .
+.22         |  -.080372         .          .         .            .         .
+.23         |  -.074523         .          .         .            .         .
+.24         |  -.082936         .          .         .            .         .
+.25         |  -.084055         .          .         .            .         .
+.26         |  -.070223         .          .         .            .         .
+.27         |  -.068075         .          .         .            .         .
+.28         |  -.074242         .          .         .            .         .
+.29         |   -.08847         .          .         .            .         .
+.3          |  -.091371         .          .         .            .         .
+.31         |    -.1013         .          .         .            .         .
+.32         |  -.104525         .          .         .            .         .
+.33         |  -.125401         .          .         .            .         .
+.34         |  -.115436         .          .         .            .         .
+.35         |  -.111771         .          .         .            .         .
+.36         |  -.101337         .          .         .            .         .
+.37         |  -.096933         .          .         .            .         .
+.38         |  -.102784         .          .         .            .         .
+.39         |   -.09546         .          .         .            .         .
+.4          |  -.103523         .          .         .            .         .
+.41         |  -.097905         .          .         .            .         .
+.42         |  -.105692         .          .         .            .         .
+.43         |  -.109673         .          .         .            .         .
+.44         |  -.108214         .          .         .            .         .
+.45         |  -.104774         .          .         .            .         .
+.46         |  -.097629         .          .         .            .         .
+.47         |  -.100479         .          .         .            .         .
+.48         |  -.094313         .          .         .            .         .
+.49         |  -.093833         .          .         .            .         .
+.5          |  -.082267         .          .         .            .         .
+.51         |  -.093657         .          .         .            .         .
+.52         |   -.09605         .          .         .            .         .
+.53         |  -.097591         .          .         .            .         .
+.54         |  -.098624         .          .         .            .         .
+.55         |  -.099468         .          .         .            .         .
+.56         |   -.10808         .          .         .            .         .
+.57         |  -.099907         .          .         .            .         .
+.58         |  -.100644         .          .         .            .         .
+.59         |  -.098002         .          .         .            .         .
+.6          |  -.102038         .          .         .            .         .
+.61         |  -.100103         .          .         .            .         .
+.62         |  -.099703         .          .         .            .         .
+.63         |  -.101258         .          .         .            .         .
+.64         |  -.098693         .          .         .            .         .
+.65         |  -.097272         .          .         .            .         .
+.66         |  -.097204         .          .         .            .         .
+.67         |   -.09572         .          .         .            .         .
+.68         |  -.097542         .          .         .            .         .
+.69         |  -.103955         .          .         .            .         .
+.7          |  -.107068         .          .         .            .         .
+.71         |  -.113904         .          .         .            .         .
+.72         |  -.115597         .          .         .            .         .
+.73         |  -.121005         .          .         .            .         .
+.74         |  -.121636         .          .         .            .         .
+.75         |  -.119189         .          .         .            .         .
+.76         |  -.120608         .          .         .            .         .
+.77         |   -.11714         .          .         .            .         .
+.78         |  -.118467         .          .         .            .         .
+.79         |  -.120106         .          .         .            .         .
+.8          |  -.106566         .          .         .            .         .
+.81         |  -.113982         .          .         .            .         .
+.82         |  -.124261         .          .         .            .         .
+.83         |  -.125188         .          .         .            .         .
+.84         |   -.12714         .          .         .            .         .
+.85         |   -.13226         .          .         .            .         .
+.86         |  -.135444         .          .         .            .         .
+.87         |  -.140377         .          .         .            .         .
+.88         |   -.15249         .          .         .            .         .
+.89         |  -.131516         .          .         .            .         .
+.9          |  -.141496         .          .         .            .         .
+.91         |  -.148276         .          .         .            .         .
+.92         |  -.154013         .          .         .            .         .
+.93         |  -.130015         .          .         .            .         .
+.94         |  -.146448         .          .         .            .         .
+.95         |  -.166625         .          .         .            .         .
+.96         |  -.113988         .          .         .            .         .
+.97         |  -.135693         .          .         .            .         .
+.98         |  -.096138         .          .         .            .         .
+.99         |  -.188127         .          .         .            .         .
+------------------------------------------------------------------------------
+
+. matrix Dinv=e(distributions);
+
+. matrix list Dinv;
+
+Dinv[99,12]
+           observed        point_se      uniform_lb      uniform_ub          fitted        point_se
+ q1       .65796089               .               .               .       .70631218               .
+ q2       .75327104               .               .               .       .79453641               .
+ q3       .82445097               .               .               .       .84762847               .
+ q4        .8644678               .               .               .       .88912374               .
+ q5       .91435403               .               .               .        .9385758               .
+ q6       .95059824               .               .               .       .96535242               .
+ q7       .97912532               .               .               .       .98701388               .
+ q8       1.0040537               .               .               .       1.0136231               .
+ q9       1.0197146               .               .               .       1.0350556               .
+q10       1.0530471               .               .               .       1.0700971               .
+q11       1.0816766               .               .               .       1.0873389               .
+q12       1.0954638               .               .               .        1.112133               .
+q13       1.1189626               .               .               .       1.1279645               .
+q14       1.1429701               .               .               .       1.1483843               .
+q15       1.1525182               .               .               .       1.1677738               .
+q16       1.1830724               .               .               .       1.1975654               .
+q17       1.2071408               .               .               .       1.2128165               .
+q18       1.2299161               .               .               .       1.2367456               .
+q19       1.2463219               .               .               .       1.2607532               .
+q20       1.2677974               .               .               .       1.2798035               .
+q21       1.2932407               .               .               .       1.3013052               .
+q22       1.3085247               .               .               .       1.3171178               .
+q23       1.3233067               .               .               .       1.3352766               .
+q24       1.3408502               .               .               .       1.3436888               .
+q25       1.3511081               .               .               .       1.3638588               .
+q26       1.3693587               .               .               .       1.3715279               .
+q27       1.3753353               .               .               .        1.385193               .
+q28       1.3966154               .               .               .       1.4095188               .
+q29       1.4212614               .               .               .       1.4321587               .
+q30       1.4405842               .               .               .       1.4552302               .
+q31       1.4646689               .               .               .       1.4728278               .
+q32       1.4809294               .               .               .       1.4897182               .
+q33       1.4994394               .               .               .       1.5105935               .
+q34       1.5181218               .               .               .        1.524955               .
+q35       1.5331023               .               .               .       1.5439296               .
+q36       1.5522221               .               .               .       1.5565675               .
+q37       1.5622965               .               .               .       1.5697609               .
+q38       1.5799963               .               .               .       1.5925022               .
+q39       1.5991338               .               .               .       1.6060531               .
+q40       1.6166689               .               .               .       1.6284779               .
+q41       1.6350576               .               .               .       1.6418343               .
+q42       1.6530761               .               .               .       1.6622598               .
+q43       1.6717489               .               .               .       1.6794335               .
+q44       1.6895456               .               .               .       1.7007158               .
+q45       1.7067703               .               .               .       1.7108271               .
+q46       1.7179664               .               .               .        1.726107               .
+q47        1.736562               .               .               .       1.7423136               .
+q48       1.7478998               .               .               .       1.7565732               .
+q49       1.7661937               .               .               .       1.7732667               .
+q50       1.7774003               .               .               .       1.7829827               .
+q51       1.7929409               .               .               .       1.8044838               .
+q52       1.8121308               .               .               .       1.8221568               .
+q53       1.8319335               .               .               .       1.8399042               .
+q54       1.8461022               .               .               .       1.8551967               .
+q55       1.8651587               .               .               .       1.8727344               .
+q56       1.8820755               .               .               .       1.8910627               .
+q57       1.8978225               .               .               .       1.9043905               .
+q58         1.91366               .               .               .       1.9228009               .
+q59       1.9302577               .               .               .       1.9379063               .
+q60        1.948522               .               .               .       1.9572345               .
+q61       1.9633583               .               .               .       1.9728372               .
+q62         1.98396               .               .               .       1.9907662               .
+q63       1.9979645               .               .               .       2.0056484               .
+q64       2.0133817               .               .               .       2.0214942               .
+q65       2.0284238               .               .               .       2.0351779               .
+q66       2.0440466               .               .               .       2.0544386               .
+q67       2.0630476               .               .               .       2.0685575               .
+q68       2.0783403               .               .               .       2.0883081               .
+q69       2.1003306               .               .               .       2.1096032               .
+q70       2.1187422               .               .               .       2.1285625               .
+q71       2.1387801               .               .               .       2.1490817               .
+q72       2.1591823               .               .               .       2.1700356               .
+q73       2.1783664               .               .               .       2.1895626               .
+q74       2.2018304               .               .               .       2.2099445               .
+q75       2.2181137               .               .               .        2.228792               .
+q76       2.2395973               .               .               .       2.2491705               .
+q77       2.2564652               .               .               .        2.266222               .
+q78       2.2800889               .               .               .       2.2885025               .
+q79       2.2976177               .               .               .       2.3096685               .
+q80       2.3241022               .               .               .       2.3353579               .
+q81       2.3497272               .               .               .       2.3631523               .
+q82       2.3755889               .               .               .       2.3904831               .
+q83       2.4008212               .               .               .       2.4136908               .
+q84        2.428745               .               .               .       2.4368088               .
+q85       2.4517596               .               .               .        2.467618               .
+q86       2.4817948               .               .               .       2.4985962               .
+q87       2.5131361               .               .               .       2.5308604               .
+q88       2.5487428               .               .               .       2.5661812               .
+q89       2.5838351               .               .               .       2.5991337               .
+q90       2.6193783               .               .               .       2.6400924               .
+q91        2.657865               .               .               .        2.679136               .
+q92       2.6979725               .               .               .       2.7201941               .
+q93       2.7406185               .               .               .        2.770107               .
+q94       2.7961195               .               .               .       2.8255839               .
+q95       2.8573668               .               .               .       2.8868191               .
+q96       2.9107432               .               .               .       2.9395723               .
+q97       2.9707294               .               .               .       3.0225122               .
+q98       3.0696557               .               .               .       3.1186507               .
+q99        3.183481               .               .               .       3.3067772               .
+
+         uniform_lb      uniform_ub  counterfactual         poit_se      uniform_lb      uniform_ub
+ q1               .               .       .70631218               .               .               .
+ q2               .               .       .79453641               .               .               .
+ q3               .               .       .79453641               .               .               .
+ q4               .               .       .84762847               .               .               .
+ q5               .               .       .88912374               .               .               .
+ q6               .               .        .9385758               .               .               .
+ q7               .               .        .9385758               .               .               .
+ q8               .               .       .96535242               .               .               .
+ q9               .               .       .98701388               .               .               .
+q10               .               .       1.0136231               .               .               .
+q11               .               .       1.0136231               .               .               .
+q12               .               .       1.0350556               .               .               .
+q13               .               .       1.0700971               .               .               .
+q14               .               .       1.0873389               .               .               .
+q15               .               .        1.112133               .               .               .
+q16               .               .       1.1279645               .               .               .
+q17               .               .       1.1279645               .               .               .
+q18               .               .       1.1483843               .               .               .
+q19               .               .       1.1677738               .               .               .
+q20               .               .       1.1975654               .               .               .
+q21               .               .       1.2128165               .               .               .
+q22               .               .       1.2367456               .               .               .
+q23               .               .       1.2607532               .               .               .
+q24               .               .       1.2607532               .               .               .
+q25               .               .       1.2798035               .               .               .
+q26               .               .       1.3013052               .               .               .
+q27               .               .       1.3171178               .               .               .
+q28               .               .       1.3352766               .               .               .
+q29               .               .       1.3436888               .               .               .
+q30               .               .       1.3638588               .               .               .
+q31               .               .       1.3715279               .               .               .
+q32               .               .        1.385193               .               .               .
+q33               .               .        1.385193               .               .               .
+q34               .               .       1.4095188               .               .               .
+q35               .               .       1.4321587               .               .               .
+q36               .               .       1.4552302               .               .               .
+q37               .               .       1.4728278               .               .               .
+q38               .               .       1.4897182               .               .               .
+q39               .               .       1.5105935               .               .               .
+q40               .               .        1.524955               .               .               .
+q41               .               .       1.5439296               .               .               .
+q42               .               .       1.5565675               .               .               .
+q43               .               .       1.5697609               .               .               .
+q44               .               .       1.5925022               .               .               .
+q45               .               .       1.6060531               .               .               .
+q46               .               .       1.6284779               .               .               .
+q47               .               .       1.6418343               .               .               .
+q48               .               .       1.6622598               .               .               .
+q49               .               .       1.6794335               .               .               .
+q50               .               .       1.7007158               .               .               .
+q51               .               .       1.7108271               .               .               .
+q52               .               .        1.726107               .               .               .
+q53               .               .       1.7423136               .               .               .
+q54               .               .       1.7565732               .               .               .
+q55               .               .       1.7732667               .               .               .
+q56               .               .       1.7829827               .               .               .
+q57               .               .       1.8044838               .               .               .
+q58               .               .       1.8221568               .               .               .
+q59               .               .       1.8399042               .               .               .
+q60               .               .       1.8551967               .               .               .
+q61               .               .       1.8727344               .               .               .
+q62               .               .       1.8910627               .               .               .
+q63               .               .       1.9043905               .               .               .
+q64               .               .       1.9228009               .               .               .
+q65               .               .       1.9379063               .               .               .
+q66               .               .       1.9572345               .               .               .
+q67               .               .       1.9728372               .               .               .
+q68               .               .       1.9907662               .               .               .
+q69               .               .       2.0056484               .               .               .
+q70               .               .       2.0214942               .               .               .
+q71               .               .       2.0351779               .               .               .
+q72               .               .       2.0544386               .               .               .
+q73               .               .       2.0685575               .               .               .
+q74               .               .       2.0883081               .               .               .
+q75               .               .       2.1096032               .               .               .
+q76               .               .       2.1285625               .               .               .
+q77               .               .       2.1490817               .               .               .
+q78               .               .       2.1700356               .               .               .
+q79               .               .       2.1895626               .               .               .
+q80               .               .        2.228792               .               .               .
+q81               .               .       2.2491705               .               .               .
+q82               .               .        2.266222               .               .               .
+q83               .               .       2.2885025               .               .               .
+q84               .               .       2.3096685               .               .               .
+q85               .               .       2.3353579               .               .               .
+q86               .               .       2.3631523               .               .               .
+q87               .               .       2.3904831               .               .               .
+q88               .               .       2.4136908               .               .               .
+q89               .               .        2.467618               .               .               .
+q90               .               .       2.4985962               .               .               .
+q91               .               .       2.5308604               .               .               .
+q92               .               .       2.5661812               .               .               .
+q93               .               .       2.6400924               .               .               .
+q94               .               .        2.679136               .               .               .
+q95               .               .       2.7201941               .               .               .
+q96               .               .       2.8255839               .               .               .
+q97               .               .       2.8868191               .               .               .
+q98               .               .       3.0225122               .               .               .
+q99               .               .       3.1186507               .               .               .
+
+. svmat Dinv;
+
+. drop if D1==.;
+(403378 observations deleted)
+
+. sum D5, detail;
+
+                             D5
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .7527393       .7527393
+ 5%     .8796734       .8155046
+10%       1.0022       .8399649       Obs                  99
+25%     1.354014       .8599001       Sum of Wgt.          99
+
+50%     1.797205                      Mean           1.767544
+                        Largest       Std. Dev.      .5256532
+75%     2.157726        2.68122
+90%       2.4622       2.744184       Variance       .2763113
+95%     2.634345       2.823661       Skewness      -.0331504
+99%     2.894946       2.894946       Kurtosis       2.193714
+
+. gen varf0=r(Var);
+
+. fastgini D5;
+
+Gini coefficient = 0.1697634
+
+. gen ginif0=r(gini);
+
+. sum Dinv5, detail;
+
+                            Dinv5
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .7063122       .7063122
+ 5%     .9385758       .7945364
+10%     1.070097       .8476285       Obs                  99
+25%     1.363859       .8891237       Sum of Wgt.          99
+
+50%     1.782983                      Mean           1.821422
+                        Largest       Std. Dev.       .583008
+75%     2.228792       2.939572
+90%     2.640092       3.022512       Variance       .3398984
+95%     2.886819       3.118651       Skewness       .2950384
+99%     3.306777       3.306777       Kurtosis       2.460204
+
+. gen varf1=r(Var);
+
+. fastgini Dinv5;
+
+Gini coefficient = 0.1815716
+
+. gen ginif1=r(gini);
+
+. sum D9, detail;
+
+                             D9
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .7527393       .7527393
+ 5%     .8967872       .8155046
+10%     1.075071       .8599001       Obs                  99
+25%     1.437269       .8796734       Sum of Wgt.          99
+
+50%     1.896202                      Mean           1.851467
+                        Largest       Std. Dev.      .5359012
+75%     2.251955       2.744184
+90%     2.563935       2.823661       Variance       .2871901
+95%     2.744184       2.894946       Skewness      -.1140606
+99%     2.894946       2.894946       Kurtosis       2.208431
+
+. gen varc=r(Var);
+
+. fastgini D9 ;
+
+Gini coefficient = 0.1651640
+
+. gen ginic=r(gini);
+
+. * get composition effects as Fc:F01-Ff0;
+. gen cginic=ginic-ginif0;
+
+. gen cvarc=varc-varf0;
+
+. * get total effects as F1-F0;
+. gen cginift=ginif1-ginif0;
+
+. gen cvarft=varf1-varf0;
+
+. * wage structure will be total minus composition;
+. gen cginis=cginift-cginic;
+
+. gen cvars=cvarft-cvarc;
+
+. di "total effect"  " cvar=" cvarft " cgini=" cginift  ;
+total effect cvar=.06358707 cgini=.01180819
+
+. di "composition" " cvar=" cvarc " cgini=" cginic  ;
+composition cvar=.01087877 cgini=-.00459947
+
+. di "wage structure"    " cvar=" cvars " cgini=" cginis ;
+wage structure cvar=.0527083 cgini=.01640765
+
+. 
+end of do-file
+
+
+. log close
+       log:  C:\Projects\FFL\DM1\DM_mineq_T5b.log
+  log type:  text
+ closed on:  30 Apr 2010, 11:43:21
+-------------------------------------------------------------------------------------------------------

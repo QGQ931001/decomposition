@@ -1,0 +1,376 @@
+-------------------------------------------------------------------------------------------------
+       log:  C:\Class\Econ560\data\dfl8.log
+  log type:  text
+ opened on:  23 Nov 2009, 11:02:46
+
+. ******;
+. use men7988_cell;
+
+. ******;
+. ** do graph 4a) for all males;
+. replace wage=wage*65.8/104.3 if year88==1;
+(74661 real changes made)
+
+.  /*transform to 1979 dollars*/ 
+> gen lwage=log(wage);
+
+. *to simplify the kernel density estimation, it will be estimate only at 200 values;
+. sum lwage, detail;
+
+                            lwage
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .6931472              0
+ 5%     .9256428              0
+10%     1.098612              0       Obs              151661
+25%     1.411151              0       Sum of Wgt.      151661
+
+50%     1.841934                      Mean           1.808079
+                        Largest       Std. Dev.      .5398235
+75%     2.179119       4.382027
+90%     2.484907       4.382027       Variance       .2914094
+95%     2.677737         4.4317       Skewness      -.0159478
+99%     3.048595        4.60507       Kurtosis       2.817795
+
+. gen xstep=(r(max)-r(min))/200;
+
+. *kwage will be the wage at which the density is estimated;
+. gen kwage=r(min)+(_n-1)*xstep if _n<=200;
+(151461 missing values generated)
+
+. gen hweight=eweight*uhrswk;
+
+.  /*hours weighted*/
+> kdensity lwage [aweight=hweight] if year88==1 , at(kwage) gauss width(0.065) 
+>      generate(w88 fd88) nograph ;
+
+. kdensity lwage [aweight=hweight] if year88==0 , at(kwage) gauss width(0.065) 
+>      generate(w79 fd79) nograph ;
+
+. label var fd88 "Men 1988";
+
+. label var fd79 "Men 1979";
+
+. label var kwage "Log(Wage)";
+
+. graph twoway (connected fd88 kwage if kwage>=0 & kwage<=3.91, msymbol(i) clwidth(medium)  ) 
+>       (connected fd79 kwage if kwage>=0 & kwage<=3.91, msymbol(i) lpattern(dash) clwidth(medium
+> ) ), 
+>        xlabel(.69 1.61 2.3 3.22) xline(0.748 1.065)scheme(sj) saving(dflfig4a,replace);
+(file dflfig4a.gph saved)
+
+. ***graph for equivalent of Figure 4d ;
+.  ***probit for year effect;
+.                                             probit year88 ee1-ee15 exper exper2 exper3 exper4 e
+> dex educ reg1-reg3
+>                ind1-ind18 occ1 occ2 nonwhite partt married smsa [pweight=eweight];
+
+(sum of wgt is   1.0120e+09)
+Iteration 0:   log pseudolikelihood = -104856.63
+Iteration 1:   log pseudolikelihood = -100383.72
+Iteration 2:   log pseudolikelihood = -100375.39
+Iteration 3:   log pseudolikelihood = -100375.39
+
+Probit regression                                 Number of obs   =     151661
+                                                  Wald chi2(48)   =    7230.33
+                                                  Prob > chi2     =     0.0000
+Log pseudolikelihood = -100375.39                 Pseudo R2       =     0.0427
+
+------------------------------------------------------------------------------
+             |               Robust
+      year88 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+         ee1 |  -.2735374   .0569336    -4.80   0.000    -.3851252   -.1619495
+         ee2 |  -.1210707   .0520703    -2.33   0.020    -.2231266   -.0190148
+         ee3 |  -.1023705   .0519769    -1.97   0.049    -.2042433   -.0004977
+         ee4 |   .0327389   .0543494     0.60   0.547    -.0737841    .1392618
+         ee5 |  -.1505719   .0519895    -2.90   0.004    -.2524695   -.0486744
+         ee6 |   .0004316   .0450424     0.01   0.992    -.0878498     .088713
+         ee7 |  -.0800461    .044677    -1.79   0.073    -.1676115    .0075192
+         ee8 |   .1108681   .0449464     2.47   0.014     .0227748    .1989615
+         ee9 |  -.3997704   .0456469    -8.76   0.000    -.4892367   -.3103041
+        ee10 |   -.083548   .0365421    -2.29   0.022    -.1551692   -.0119269
+        ee11 |   .0675254   .0373897     1.81   0.071    -.0057571     .140808
+        ee12 |   .0576564   .0349979     1.65   0.099    -.0109383     .126251
+        ee13 |  -.3504912   .0447514    -7.83   0.000    -.4382022   -.2627801
+        ee14 |  -.1493431   .0322893    -4.63   0.000    -.2126289   -.0860573
+        ee15 |  -.1104131   .0338247    -3.26   0.001    -.1767083    -.044118
+       exper |    .061229   .0064979     9.42   0.000     .0484933    .0739646
+      exper2 |  -.0014445   .0004582    -3.15   0.002    -.0023426   -.0005465
+      exper3 |  -.0000101    .000014    -0.72   0.472    -.0000376    .0000174
+      exper4 |   3.53e-07   1.41e-07     2.50   0.013     7.59e-08    6.30e-07
+        edex |    .000347   .0002252     1.54   0.123    -.0000943    .0007883
+        educ |   .0051081   .0069767     0.73   0.464     -.008566    .0187822
+        reg1 |  -.0939927   .0115494    -8.14   0.000    -.1166292   -.0713562
+        reg2 |  -.0317797   .0111411    -2.85   0.004    -.0536159   -.0099436
+        reg3 |   .0755404   .0107638     7.02   0.000     .0544438    .0966371
+        ind1 |   .2320288   .0286219     8.11   0.000     .1759309    .2881267
+        ind2 |  -.0560648   .0334058    -1.68   0.093     -.121539    .0094095
+        ind3 |   .1031777   .0174604     5.91   0.000      .068956    .1373995
+        ind4 |  -.0405087   .0151218    -2.68   0.007     -.070147   -.0108705
+        ind5 |  -.0155909    .017015    -0.92   0.360    -.0489396    .0177578
+        ind6 |  -.0041862   .0201278    -0.21   0.835    -.0436359    .0352636
+        ind7 |   .0316534   .0218868     1.45   0.148    -.0112439    .0745508
+        ind8 |    .041763   .0207122     2.02   0.044     .0011679    .0823581
+        ind9 |   .1253879   .0162091     7.74   0.000     .0936186    .1571572
+       ind10 |   .0565434   .0219157     2.58   0.010     .0135894    .0994975
+       ind11 |  -.0155594   .0749505    -0.21   0.836    -.1624596    .1313407
+       ind12 |   .2945752   .0212779    13.84   0.000     .2528712    .3362792
+       ind13 |   .2526223   .0346042     7.30   0.000     .1847993    .3204453
+       ind14 |   .2777289   .0367733     7.55   0.000     .2056545    .3498033
+       ind15 |   .2137034   .0402335     5.31   0.000     .1348472    .2925597
+       ind16 |   .0278563   .0293951     0.95   0.343    -.0297571    .0854697
+       ind17 |   .1486276   .0342124     4.34   0.000     .0815725    .2156826
+       ind18 |  -.0231548   .0197027    -1.18   0.240    -.0617713    .0154617
+        occ1 |   -.150383   .0112574   -13.36   0.000    -.1724471   -.1283189
+        occ2 |   .0909633   .0119443     7.62   0.000     .0675529    .1143738
+    nonwhite |   .0051676   .0121872     0.42   0.672    -.0187189    .0290541
+       partt |   .2228291    .014461    15.41   0.000     .1944861     .251172
+     married |  -.2746784   .0092676   -29.64   0.000    -.2928427   -.2565142
+        smsa |   .3688433   .0082018    44.97   0.000     .3527682    .3849185
+       _cons |  -.5439562   .1091983    -4.98   0.000    -.7579809   -.3299315
+------------------------------------------------------------------------------
+
+. predict py88, p;
+
+. summ py88 , detail;
+
+                         Pr(year88)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%     .2521141       .1555336
+ 5%     .3097326         .15684
+10%     .3519396       .1611275       Obs              151661
+25%     .4292223       .1640978       Sum of Wgt.      151661
+
+50%      .520543                      Mean           .5168255
+                        Largest       Std. Dev.      .1219375
+75%     .6037015       .9045848
+90%     .6747595       .9059128       Variance       .0148688
+95%     .7153927       .9184979       Skewness        -.04499
+99%      .781132        .919107       Kurtosis       2.527645
+
+. summ year88 [weight=eweight] ;
+(analytic weights assumed)
+
+    Variable |     Obs      Weight        Mean   Std. Dev.       Min        Max
+-------------+-----------------------------------------------------------------
+      year88 |  151661  1.0120e+09    .5296471   .4991219          0          1
+
+. gen pbar=r(mean);
+
+. gen phix=((1-py88)/py88)*(pbar/(1-pbar)) if year88==1;
+(77000 missing values generated)
+
+. replace phix=phix*hweight;
+(74661 real changes made)
+
+.   */sample and hours weighted*/
+> **** reweighing for changes X2=all other variables besides education;
+. probit year88 exper exper2 exper3 exper4 reg1-reg3
+>                ind1-ind18 occ1 occ2 nonwhite partt married smsa [pweight=eweight];
+
+(sum of wgt is   1.0120e+09)
+Iteration 0:   log pseudolikelihood = -104856.63
+Iteration 1:   log pseudolikelihood = -101079.61
+Iteration 2:   log pseudolikelihood =  -101074.5
+Iteration 3:   log pseudolikelihood =  -101074.5
+
+Probit regression                                 Number of obs   =     151661
+                                                  Wald chi2(31)   =    6152.75
+                                                  Prob > chi2     =     0.0000
+Log pseudolikelihood =  -101074.5                 Pseudo R2       =     0.0361
+
+------------------------------------------------------------------------------
+             |               Robust
+      year88 |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+       exper |    .088586   .0045323    19.55   0.000     .0797028    .0974692
+      exper2 |  -.0027868   .0003623    -7.69   0.000    -.0034969   -.0020767
+      exper3 |   .0000157   .0000109     1.44   0.149    -5.62e-06     .000037
+      exper4 |   1.53e-07   1.08e-07     1.42   0.155    -5.80e-08    3.65e-07
+        reg1 |  -.0934399   .0114442    -8.16   0.000    -.1158702   -.0710097
+        reg2 |  -.0286485   .0110452    -2.59   0.009    -.0502966   -.0070003
+        reg3 |   .0592097   .0106464     5.56   0.000     .0383433    .0800762
+        ind1 |   .1323561   .0284112     4.66   0.000     .0766712    .1880411
+        ind2 |   -.096378    .033332    -2.89   0.004    -.1617075   -.0310484
+        ind3 |   .0477955   .0172834     2.77   0.006     .0139207    .0816703
+        ind4 |  -.0830452   .0150037    -5.53   0.000    -.1124518   -.0536385
+        ind5 |  -.0548756   .0168872    -3.25   0.001    -.0879739   -.0217773
+        ind6 |   -.037387   .0200291    -1.87   0.062    -.0766434    .0018694
+        ind7 |   .0139549   .0218319     0.64   0.523    -.0288347    .0567446
+        ind8 |    .002807   .0205733     0.14   0.891    -.0375159    .0431298
+        ind9 |   .0654734   .0160063     4.09   0.000     .0341016    .0968453
+       ind10 |   .0471138   .0217961     2.16   0.031     .0043942    .0898334
+       ind11 |  -.0932408   .0740257    -1.26   0.208    -.2383285     .051847
+       ind12 |   .2480679   .0211058    11.75   0.000     .2067014    .2894344
+       ind13 |   .2114826   .0342923     6.17   0.000      .144271    .2786943
+       ind14 |   .2200422   .0366328     6.01   0.000     .1482432    .2918411
+       ind15 |   .2087255   .0398704     5.24   0.000     .1305809    .2868701
+       ind16 |   .0081086   .0292353     0.28   0.782    -.0491915    .0654088
+       ind17 |   .1604988   .0339881     4.72   0.000     .0938834    .2271142
+       ind18 |   .0028667   .0194152     0.15   0.883    -.0351865    .0409198
+        occ1 |  -.0056428   .0094499    -0.60   0.550    -.0241642    .0128786
+        occ2 |   .1729401   .0115108    15.02   0.000     .1503794    .1955008
+    nonwhite |  -.0086739   .0121407    -0.71   0.475    -.0324692    .0151215
+       partt |   .1972962   .0139437    14.15   0.000     .1699671    .2246253
+     married |  -.2597592   .0091729   -28.32   0.000    -.2777377   -.2417807
+        smsa |   .3806152   .0081531    46.68   0.000     .3646355    .3965949
+       _cons |  -.6577383   .0232336   -28.31   0.000    -.7032753   -.6122013
+------------------------------------------------------------------------------
+
+. predict py88noed, p;
+
+. sum py88noed, detail;
+
+                         Pr(year88)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%      .267645       .1553211
+ 5%     .3243939        .156687
+10%     .3668622       .1713055       Obs              151661
+25%     .4348234       .1713055       Sum of Wgt.      151661
+
+50%      .523245                      Mean           .5162669
+                        Largest       Std. Dev.      .1125652
+75%     .5954269       .8699751
+90%     .6615835       .8806656       Variance       .0126709
+95%     .6968436       .8831434       Skewness      -.0800675
+99%     .7598448       .8839108       Kurtosis       2.543095
+
+. gen phix2=((1-py88)/py88)*(py88noed/(1-py88noed))*(pbar/(1-pbar)) if year88==1;
+(77000 missing values generated)
+
+. replace phix2=phix2*hweight;
+(74661 real changes made)
+
+.   */sample and hours weighted*/
+> ****;
+. kdensity lwage [aweight=phix] if year88==1 , at(kwage) gauss width(0.065) 
+>      generate(w88x79 fd88x79) nograph ;
+
+. kdensity lwage [aweight=phix2] if year88==1 , at(kwage) gauss width(0.065) 
+>      generate(w88ed79 fd88ed79) nograph ;
+
+. label var fd88 "Men 1988";
+
+. label var fd88x79 "Men 1988x79";
+
+. label var fd88ed79 "Men 1988ed79";
+
+. label var kwage "Log(Wage)";
+
+. graph twoway (connected fd88 kwage if kwage>=0 & kwage<=3.91, msymbol(i) clwidth(medium)  ) 
+>       (connected fd88x79 kwage if kwage>=0 & kwage<=3.91, msymbol(i) lpattern(dash) clwidth(med
+> ium) )
+>       (connected fd88ed79 kwage if kwage>=0 & kwage<=3.91, msymbol(i) lpattern(longdash) clwidt
+> h(medium) ), 
+>        xlabel(.69 1.61 2.3 3.22) xline(0.748 1.065) scheme(sj) saving(dflfig4c,replace);
+(file dflfig4c.gph saved)
+
+. *****;
+. ****distributional measures for 1988;
+. integ fd88 w88, generate(cint);
+
+number of points = 200
+
+integral         = .99987185
+
+. gen cent10=w88 if cint>.1 & cint[_n-1]<.1 & cint~=.;
+(151660 missing values generated)
+
+. sum cent10;
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+      cent10 |         1    1.082191           .   1.082191   1.082191
+
+. gen d10=r(mean);
+
+. gen cent90=w88 if cint>.9 & cint[_n-1]<.9 & cint~=.;
+(151660 missing values generated)
+
+. sum cent90;
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+      cent90 |         1    2.555814           .   2.555814   2.555814
+
+. gen d90=r(mean);
+
+. gen cent50=w88 if cint>.5 & cint[_n-1]<.5 & cint~=.;
+(151660 missing values generated)
+
+. sum cent50;
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+      cent50 |         1    1.842028           .   1.842028   1.842028
+
+. gen d50=r(mean);
+
+. gen d9010=d90-d10;
+
+.  di d9010;
+1.4736226
+
+. gen d9050=d90-d50;
+
+.  di d9050;
+.71378601
+
+. gen d5010=d50-d10;
+
+.  di d5010;
+.75983655
+
+. ***STANDARD DEVIATION OF LOG WAGES;
+. gen m1=w88*fd88;
+(151461 missing values generated)
+
+. integ m1 w88, generate(mint);
+
+number of points = 200
+
+integral         = 1.8197137
+
+. summ mint;
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+        mint |       200    1.027028    .7734046          0   1.819714
+
+. gen mrw=_result(6);
+
+. di mrw;
+1.8197137
+
+. gen v1=((w88-mrw)^2)*fd88;
+(151461 missing values generated)
+
+. integ v1 w88, generate(vint);
+
+number of points = 200
+
+integral         = .31764305
+
+. summ vint;
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+        vint |       200    .1904229    .1127661          0    .317643
+
+. gen var=_result(6);
+
+. di var;
+.31764305
+
+. gen std=sqrt(var);
+
+. di std;
+.56359828
+
+. 
+end of do-file
+
+. exit, clear
